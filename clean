@@ -1,0 +1,3 @@
+#! /bin/sh
+docker stop openidProxy
+docker rm --force openidProxy

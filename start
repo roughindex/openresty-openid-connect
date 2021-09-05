@@ -1,0 +1,13 @@
+#! /bin/sh
+
+# dnsmasq has to run as a root user on RHEL because of kernel lockdown
+su -c "dnsmasq -u dnsmasq -S $RESOLVER" -s /bin/sh dnsmasq
+
+# REMOVEME - Simple web server to be removed when real app server to be reverse proxied is configured
+su -c "python -m SimpleHTTPServer 12345 &" -s /bin/sh openresty 
+
+# nginx doesn't read from environment variables so rewrite the config
+OPENRESTY="envsubst < /usr/local/openresty/nginx/conf/nginx.template.conf > /usr/local/openresty/nginx/conf/nginx.conf && envsubst < auth.lua > /usr/local/openresty/nginx/auth.lua && /usr/local/openresty/bin/openresty -g 'daemon off;'"
+
+# run nginx with minimal rights
+su -c "$OPENRESTY" -s /bin/sh openresty

@@ -1,0 +1,8 @@
+env.list
+scan
+push
+server.crt
+server.key
+testbuild
+Dockerfile.orig
+Dockerfile.RHEL8

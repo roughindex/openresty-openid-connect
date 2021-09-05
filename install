@@ -1,0 +1,9 @@
+#! /bin/sh
+sh clean
+if [ ! -f "server.crt" ]; then
+    openssl req -batch -x509 -newkey rsa:4086 -days 3650 -nodes -sha256 -keyout server.key -out server.crt
+fi
+
+docker build -t openidproxy:1.0 .
+envsubst < env.list.template > env.list
+docker run --rm -d --publish 80:80 --publish 443:443 --env-file env.list --name openidproxy openidproxy:1.0
