@@ -7,3 +7,4 @@ testbuild
 Dockerfile.orig
 Dockerfile.RHEL8
 **.swp
+testrun
