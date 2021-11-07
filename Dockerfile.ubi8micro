@@ -1,0 +1,26 @@
+FROM ubi8openresty as builder
+
+FROM registry.access.redhat.com/ubi8/ubi-micro:latest
+
+ENV LUA_CPATH "/usr/local/openresty/site/lualib/?.so;/usr/local/openresty/lualib/?.so;./?.so;/usr/local/openresty/luajit/lib/lua/5.1/?.so;/usr/local/openresty/luajit/lib/lua/5.1/?.so"
+
+ENV LUA_PATH "/usr/local/openresty/site/lualib/?.ljbc;/usr/local/openresty/site/lualib/?/init.ljbc;/usr/local/openresty/lualib/?.ljbc;/usr/local/openresty/lualib/?/init.ljbc;/usr/local/openresty/site/lualib/?.lua;/usr/local/openresty/site/lualib/?/init.lua;/usr/local/openresty/lualib/?.lua;/usr/local/openresty/lualib/?/init.lua;./?.lua;/usr/local/openresty/luajit/share/luajit-2.1.0-beta3/?.lua;/usr/local/openresty/luajit/share/lua/5.1/?.lua;/usr/local/openresty/luajit/share/lua/5.1/?/init.lua"
+
+ENV PATH "/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/local/openresty/luajit/bin:/usr/local/openresty/nginx/sbin:/usr/local/openresty/bin"
+
+COPY --from=builder /usr/local/openresty /usr/local/openresty/
+COPY --from=builder /usr/bin/openresty /usr/bin/
+COPY --from=builder /etc/nginx /etc/nginx/
+COPY --from=builder /usr/lib64/libcrypt* /usr/lib64/
+COPY --from=builder /usr/lib64/libgcc* /usr/lib64/
+
+# Copy nginx configuration files
+COPY nginx.conf /usr/local/openresty/nginx/conf/nginx.conf
+COPY nginx.vh.default.conf /etc/nginx/conf.d/default.conf
+
+RUN mkdir -p /var/run/openresty
+# Use SIGQUIT instead of default SIGTERM to cleanly drain requests
+# See https://github.com/openresty/docker-openresty/blob/master/README.md#tips--pitfalls
+STOPSIGNAL SIGQUIT
+
+CMD ["/usr/bin/openresty", "-g", "daemon off;"]

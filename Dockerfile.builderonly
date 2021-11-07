@@ -1,4 +1,4 @@
-FROM registry.access.redhat.com/ubi7/ubi-minimal:latest as base
+FROM registry.access.redhat.com/ubi7/ubi-minimal:latest
 # dnsmasq comes from Centos due to a UBI issue (it doesn't exist in the RHEL7 repo)
 # The centos mirror is enabled only for the duration of installing dnsmasq
 ARG ORO=https://openresty.org/package/rhel/7/x86_64
@@ -19,7 +19,6 @@ RUN curl -L -o openresty.rpm $ORO/openresty-1.19.3.1-1.el7.x86_64.rpm && \
     microdnf clean all && \
     rpm --rebuilddb
 
-from base as builder
 RUN microdnf install git unzip gcc openssl-devel && \
     curl -LO https://luarocks.org/releases/luarocks-3.7.0.tar.gz && \
     tar -xf luarocks-3.7.0.tar.gz && \
@@ -37,8 +36,6 @@ RUN microdnf install git unzip gcc openssl-devel && \
     luarocks install lua-resty-hmac && \
     luarocks install lua-resty-openidc
 
-from base 
-COPY --from=builder /luarocks-3.7.0 .
 COPY server.crt /etc/nginx/server.crt
 COPY server.key /etc/nginx/server.key
 COPY auth.lua .

@@ -1,2 +1,2 @@
 #!/bin/sh
-docker run -p 80:80 -d --rm --name op oauth2proxy
+docker run -p 80:80 -d --rm --name op stampcover/rhel7-openresty-cognito:0.2
