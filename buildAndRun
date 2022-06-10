@@ -1,2 +1,3 @@
 #! /bin/sh
-docker build -f Dockerfile.ubi8micro -t ubi8openrestymicro . && docker run -it --network=host --rm ubi8openrestymicro
+docker build -f Dockerfile.ubi8micro -t ubi8openrestymicro . && \
+docker run -it --network=host --rm ubi8openrestymicro

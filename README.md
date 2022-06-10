@@ -7,3 +7,6 @@
     # Optional cleanup
     microdnf remove openssl
     microdnf clean all
+
+## TODO
+1. Enable TLS Client Certs in openidc.call_token_endpoint

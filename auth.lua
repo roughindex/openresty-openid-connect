@@ -40,15 +40,15 @@ end
 
 if requireAuth(ngx) then
   local opts = {
-    authorization_params = $AUTHORIZATION_PARAMS,
-    redirect_uri = $REDIRECT_URI,
-    discovery = $DISCOVERY,
-    client_id = $CLIENT_ID,
-    client_secret = $CLIENT_SECRET,
-    ssl_verify = $SSL_VERIFY,
-    logout_path = $LOGOUT_PATH,
-    scope = $SCOPE,
-    session_contents = $SESSION_CONTENTS
+    authorization_params = '$AUTHORIZATION_PARAMS',
+    redirect_uri = '$REDIRECT_URI',
+    discovery = '$DISCOVERY',
+    client_id = '$CLIENT_ID',
+    client_secret = '$CLIENT_SECRET',
+    ssl_verify = '$SSL_VERIFY',
+    logout_path = '$LOGOUT_PATH',
+    scope = '$SCOPE',
+    session_contents = '$SESSION_CONTENTS'
   }
 
   local openidc = require("resty.openidc")

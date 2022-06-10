@@ -24,6 +24,16 @@ LABEL resty_rpm_version="${RESTY_RPM_VERSION}"
 LABEL resty_rpm_dist="${RESTY_RPM_DIST}"
 LABEL resty_rpm_arch="${RESTY_RPM_ARCH}"
 
+# Add additional binaries into PATH for convenience
+ENV PATH=$PATH:/usr/local/openresty/luajit/bin:/usr/local/openresty/nginx/sbin:/usr/local/openresty/bin
+
+# Add LuaRocks paths
+# If OpenResty changes, these may need updating:
+#    /usr/local/openresty/bin/resty -e 'print(package.path)'
+#    /usr/local/openresty/bin/resty -e 'print(package.cpath)'
+ENV LUA_PATH="/usr/local/openresty/site/lualib/?.ljbc;/usr/local/openresty/site/lualib/?/init.ljbc;/usr/local/openresty/lualib/?.ljbc;/usr/local/openresty/lualib/?/init.ljbc;/usr/local/openresty/site/lualib/?.lua;/usr/local/openresty/site/lualib/?/init.lua;/usr/local/openresty/lualib/?.lua;/usr/local/openresty/lualib/?/init.lua;./?.lua;/usr/local/openresty/luajit/share/luajit-2.1.0-beta3/?.lua;/usr/local/share/lua/5.1/?.lua;/usr/local/share/lua/5.1/?/init.lua;/usr/local/openresty/luajit/share/lua/5.1/?.lua;/usr/local/openresty/luajit/share/lua/5.1/?/init.lua"
+
+ENV LUA_CPATH="/usr/local/openresty/site/lualib/?.so;/usr/local/openresty/lualib/?.so;./?.so;/usr/local/lib/lua/5.1/?.so;/usr/local/openresty/luajit/lib/lua/5.1/?.so;/usr/local/lib/lua/5.1/loadall.so;/usr/local/openresty/luajit/lib/lua/5.1/?.so"
 
 RUN yum install -y yum-utils \
     && yum-config-manager --add-repo ${RESTY_YUM_REPO} \
@@ -36,6 +46,11 @@ RUN yum install -y yum-utils \
         openresty-resty-${RESTY_RPM_VERSION}.${RESTY_RPM_DIST} \
         tar \
         unzip \
+        diffutils \
+        openssl \
+        openssl-devel \
+        git \
+        gcc \
     && cd /tmp \
     && curl -fSL https://luarocks.github.io/luarocks/releases/luarocks-${RESTY_LUAROCKS_VERSION}.tar.gz -o luarocks-${RESTY_LUAROCKS_VERSION}.tar.gz \
     && tar xzf luarocks-${RESTY_LUAROCKS_VERSION}.tar.gz \
@@ -52,23 +67,22 @@ RUN yum install -y yum-utils \
     && yum clean all \
     && mkdir -p /var/run/openresty \
     && ln -sf /dev/stdout /usr/local/openresty/nginx/logs/access.log \
-    && ln -sf /dev/stderr /usr/local/openresty/nginx/logs/error.log
+    && ln -sf /dev/stderr /usr/local/openresty/nginx/logs/error.log \
+    && luarocks config --scope system variables.LUA_LIBDIR /usr/local/openresty/luajit/lib \
+    && luarocks install shell-games \
+    && luarocks install lua-resty-http \
+    && luarocks install lua-resty-auto-ssl \
+    && luarocks install lua-resty-session \
+    && luarocks install lua-resty-openssl \
+    && luarocks install lua-resty-jwt \
+    && luarocks install luacrypto OPENSSL_INCDIR=/usr/include \
+    && luarocks install lua-resty-hmac \
+    && luarocks install lua-resty-openidc
 
 # Unused, present for parity with other Dockerfiles
 # This makes some tooling/testing easier, as specifying a build-arg
 # and not consuming it fails the build.
 ARG RESTY_J="1"
-
-# Add additional binaries into PATH for convenience
-ENV PATH=$PATH:/usr/local/openresty/luajit/bin:/usr/local/openresty/nginx/sbin:/usr/local/openresty/bin
-
-# Add LuaRocks paths
-# If OpenResty changes, these may need updating:
-#    /usr/local/openresty/bin/resty -e 'print(package.path)'
-#    /usr/local/openresty/bin/resty -e 'print(package.cpath)'
-ENV LUA_PATH="/usr/local/openresty/site/lualib/?.ljbc;/usr/local/openresty/site/lualib/?/init.ljbc;/usr/local/openresty/lualib/?.ljbc;/usr/local/openresty/lualib/?/init.ljbc;/usr/local/openresty/site/lualib/?.lua;/usr/local/openresty/site/lualib/?/init.lua;/usr/local/openresty/lualib/?.lua;/usr/local/openresty/lualib/?/init.lua;./?.lua;/usr/local/openresty/luajit/share/luajit-2.1.0-beta3/?.lua;/usr/local/share/lua/5.1/?.lua;/usr/local/share/lua/5.1/?/init.lua;/usr/local/openresty/luajit/share/lua/5.1/?.lua;/usr/local/openresty/luajit/share/lua/5.1/?/init.lua"
-
-ENV LUA_CPATH="/usr/local/openresty/site/lualib/?.so;/usr/local/openresty/lualib/?.so;./?.so;/usr/local/lib/lua/5.1/?.so;/usr/local/openresty/luajit/lib/lua/5.1/?.so;/usr/local/lib/lua/5.1/loadall.so;/usr/local/openresty/luajit/lib/lua/5.1/?.so"
 
 # Copy nginx configuration files
 COPY nginx.conf /usr/local/openresty/nginx/conf/nginx.conf
